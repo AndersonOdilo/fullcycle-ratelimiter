@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  redis:
+      image: redis:latest 
+      container_name: my-redis-instance
+      ports:
+        - "6379:6379" 
+      volumes:
+        - redis_data:/data 
+
+  rate-limiter:
+    build: 
+      dockerfile: ./dockerfile
+    restart: always
+    env_file:
+      - cmd/.env
+    ports:
+      - 8080:8080
+
+volumes:
+  redis_data:
