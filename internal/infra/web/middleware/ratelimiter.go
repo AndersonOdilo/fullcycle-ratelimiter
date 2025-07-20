@@ -4,10 +4,18 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/AndersonOdilo/fullcycle-ratelimiter/internal/infra/database"
 	"github.com/AndersonOdilo/fullcycle-ratelimiter/internal/usecase"
 )
 
-func RateLimiter(rateLimiterUseCase *usecase.RateLimiterUseCase) func(next http.Handler) http.Handler {
+func RateLimiter(tipoBancoDeDados database.TipoBancoDeDados) func(next http.Handler) http.Handler {
+
+	rateLimiterUseCase := usecase.NewRateLimiterUseCase(database.FabricaClienteRepository(tipoBancoDeDados))
+
+	return requestRateLimiter(rateLimiterUseCase);
+}
+
+func requestRateLimiter(rateLimiterUseCase *usecase.RateLimiterUseCase) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn :=  func(w http.ResponseWriter, r *http.Request) {
 

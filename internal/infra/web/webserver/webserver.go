@@ -7,23 +7,21 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
+	"github.com/AndersonOdilo/fullcycle-ratelimiter/internal/infra/database"
 	internal "github.com/AndersonOdilo/fullcycle-ratelimiter/internal/infra/web/middleware"
-	"github.com/AndersonOdilo/fullcycle-ratelimiter/internal/usecase"
 )
 
 type WebServer struct {
 	Router        		chi.Router
 	Handlers      		map[string]http.HandlerFunc
 	WebServerPort 		string
-	RateLimiterUseCase  *usecase.RateLimiterUseCase
 }
 
-func NewWebServer(serverPort string, rateLimiterUseCase *usecase.RateLimiterUseCase) *WebServer {
+func NewWebServer(serverPort string) *WebServer {
 	return &WebServer{
 		Router:        		chi.NewRouter(),
 		Handlers:      		make(map[string]http.HandlerFunc),
 		WebServerPort: 		serverPort,
-		RateLimiterUseCase: rateLimiterUseCase,
 	}
 }
 
@@ -39,7 +37,7 @@ func (s *WebServer) Start() {
 	s.Router.Use(middleware.RealIP)
 	s.Router.Use(middleware.Recoverer)
 	s.Router.Use(middleware.Timeout(60 * time.Second))
-	s.Router.Use(internal.RateLimiter(s.RateLimiterUseCase))
+	s.Router.Use(internal.RateLimiter(database.REDIS))
 
 	for path, handler := range s.Handlers {
 		s.Router.Handle(path, handler)
