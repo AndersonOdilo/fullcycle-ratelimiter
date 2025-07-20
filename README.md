@@ -1,5 +1,3 @@
-Aqui está o `README.md` reorganizado, corrigido e formatado com melhor estrutura e clareza:
-
 ---
 
 # 🚦 FullCycle Rate Limiter
