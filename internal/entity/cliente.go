@@ -10,9 +10,9 @@ type Cliente struct {
 	UnixRequest 	[]int64
 }
 
-func (c *Cliente) InsereNovaRequest(){
+func (c *Cliente) InsereNovaRequest(unixRequest int64){
 
-	c.UnixRequest = append(c.UnixRequest, time.Now().UnixMilli())
+	c.UnixRequest = append(c.UnixRequest, unixRequest)
 }
 
 func (c *Cliente) CalculaNumeroRequestPorSegundo() int64{

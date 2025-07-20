@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/AndersonOdilo/fullcycle-ratelimiter/internal/usecase"
 )
@@ -10,7 +11,7 @@ func RateLimiter(rateLimiterUseCase *usecase.RateLimiterUseCase) func(next http.
 	return func(next http.Handler) http.Handler {
 		fn :=  func(w http.ResponseWriter, r *http.Request) {
 
-			acessoLiberado, err := rateLimiterUseCase.Execute(r);
+			acessoLiberado, err := rateLimiterUseCase.Execute(r.Context(), r.RemoteAddr, r.Header.Get("API_KEY"), time.Now().UnixMilli());
 
 			if (err != nil){
 

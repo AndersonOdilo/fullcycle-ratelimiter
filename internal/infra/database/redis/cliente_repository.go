@@ -19,7 +19,7 @@ func NewClienteRedisRepository(redisClient *redis.Client) *ClienteRedisRepositor
 }
 
 
-func (r ClienteRedisRepository)	Obtem(ctx context.Context, chave string) (entity.Cliente, error){
+func (r *ClienteRedisRepository) Obtem(ctx context.Context, chave string) (entity.Cliente, error){
 	
 	val, err := r.RedisClient.Get(ctx, chave).Result()
 
@@ -42,7 +42,7 @@ func (r ClienteRedisRepository)	Obtem(ctx context.Context, chave string) (entity
 	return cliente, nil
 }
 
-func (r ClienteRedisRepository)	Grava(ctx context.Context, cliente entity.Cliente) error{
+func (r *ClienteRedisRepository) Grava(ctx context.Context, cliente entity.Cliente) error{
 
 	jsonData, err := json.Marshal(cliente)
 

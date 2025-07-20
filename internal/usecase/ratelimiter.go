@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	"net/http"
+	"context"
 	"os"
 	"strconv"
 	"sync"
@@ -23,21 +23,21 @@ func NewRateLimiterUseCase(clienteRepositoryInterface entity.ClienteRepositoryIn
 	}
 }
 
-func (r *RateLimiterUseCase) Execute(request *http.Request) (AcessoLiberado, error)  {
+func (r *RateLimiterUseCase) Execute(ctx context.Context, ip string, token string, unixTimestampRequest int64) (AcessoLiberado, error)  {
 
 	var chave string
 	var nrMaximoRequestPorSegundo int64 
-	var duracaoBloqueio  time.Duration
+	var duracaoBloqueio time.Duration
 
-	if (request.Header.Get("API_KEY") != ""){
+	if (token != ""){
 
-		chave = request.Header.Get("API_KEY")
+		chave = token
 		nrMaximoRequestPorSegundo = getNrMaximoRequestPorSegundoToken(chave)
 		duracaoBloqueio = getDuracaoBloqueioToken(chave)
-	
-		} else{
 
-		chave = request.RemoteAddr
+	} else{
+
+		chave = ip
 		nrMaximoRequestPorSegundo = getNrMaximoRequestPorSegundoIP()
 		duracaoBloqueio = getDuracaoBloqueioIP()
 	}
@@ -45,7 +45,7 @@ func (r *RateLimiterUseCase) Execute(request *http.Request) (AcessoLiberado, err
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	cliente, err := r.ClienteRepositoryInterface.Obtem(request.Context(), chave);
+	cliente, err := r.ClienteRepositoryInterface.Obtem(ctx, chave);
 
 	if err != nil {
 		return false, err
@@ -55,9 +55,9 @@ func (r *RateLimiterUseCase) Execute(request *http.Request) (AcessoLiberado, err
 	if (cliente.Chave == ""){
 
 		cliente.Chave = chave
-		cliente.InsereNovaRequest()
+		cliente.InsereNovaRequest(unixTimestampRequest)
 		
-		err := r.ClienteRepositoryInterface.Grava(request.Context(), cliente)
+		err := r.ClienteRepositoryInterface.Grava(ctx, cliente)
 
 		if err != nil {
 			return false, err
@@ -77,9 +77,9 @@ func (r *RateLimiterUseCase) Execute(request *http.Request) (AcessoLiberado, err
 		} else {
 			//inativa bloqueio
 			cliente.UnixBloqueio = 0
-			cliente.InsereNovaRequest()
+			cliente.InsereNovaRequest(unixTimestampRequest)
 
-			err := r.ClienteRepositoryInterface.Grava(request.Context(), cliente)
+			err := r.ClienteRepositoryInterface.Grava(ctx, cliente)
 
 			if err != nil {
 				return false, err
@@ -92,9 +92,9 @@ func (r *RateLimiterUseCase) Execute(request *http.Request) (AcessoLiberado, err
 	//verifica se o número maximo de request do ultimo segundo não excedeu o limite
 	if (cliente.CalculaNumeroRequestPorSegundo() < nrMaximoRequestPorSegundo){
 
-		cliente.InsereNovaRequest()
+		cliente.InsereNovaRequest(unixTimestampRequest)
 		
-		err := r.ClienteRepositoryInterface.Grava(request.Context(), cliente)
+		err := r.ClienteRepositoryInterface.Grava(ctx, cliente)
 
 		if err != nil {
 			return false, err
@@ -104,9 +104,9 @@ func (r *RateLimiterUseCase) Execute(request *http.Request) (AcessoLiberado, err
 	
 	} else {
 		//excedeu o limite lança um bloqueio
-		cliente.UnixBloqueio = time.Now().Add(duracaoBloqueio).UnixMilli()
+		cliente.UnixBloqueio = unixTimestampRequest + duracaoBloqueio.Milliseconds()
 
-		err := r.ClienteRepositoryInterface.Grava(request.Context(), cliente)
+		err := r.ClienteRepositoryInterface.Grava(ctx, cliente) 
 
 		if err != nil {
 			return false, err
