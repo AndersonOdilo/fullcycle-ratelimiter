@@ -42,6 +42,22 @@ Você pode definir regras específicas para um token usando as seguintes variáv
 
 ---
 
+## ⚙️ Adicionando Middleware ao Chi
+
+* `s.Router.Use(internal.RateLimiter(database.REDIS))`
+
+Foi criado uma constante para armazenar os tipos de banco de dados suportados e uma factory para instaciar os mesmos
+
+```bash
+type TipoBancoDeDados int
+
+const (
+	REDIS  TipoBancoDeDados = iota + 1
+)`
+```
+
+---
+
 ## ▶️ Como Rodar o Projeto
 
 1. Execute o comando abaixo para iniciar o Redis e o servidor da aplicação:
@@ -87,4 +103,3 @@ curl --parallel --parallel-immediate --parallel-max 20 \
 
 ---
 
-Se quiser, posso substituir o conteúdo do arquivo por essa versão revisada. Deseja que eu faça isso?
